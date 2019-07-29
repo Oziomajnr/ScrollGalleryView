@@ -3,6 +3,7 @@ package com.veinhorn.scrollgalleryview;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,10 +20,16 @@ public class ImageFragment extends Fragment {
 
     private HackyViewPager viewPager;
     private PhotoView photoView;
+
     private ScrollGalleryView.OnImageClickListener onImageClickListener;
+    private ScrollGalleryView.OnImageLongClickListener onImageLongClickListener;
 
     public void setOnImageClickListener(ScrollGalleryView.OnImageClickListener onImageClickListener) {
         this.onImageClickListener = onImageClickListener;
+    }
+
+    public void setOnImageLongClickListener(ScrollGalleryView.OnImageLongClickListener onImageLongClickListener) {
+        this.onImageLongClickListener = onImageLongClickListener;
     }
 
     public void setMediaInfo(MediaInfo mediaInfo) {
@@ -30,18 +37,29 @@ public class ImageFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         View rootView = inflater.inflate(R.layout.image_fragment, container, false);
         photoView = rootView.findViewById(R.id.photoView);
+
         if (onImageClickListener != null) {
             photoView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    onImageClickListener.onClick();
+                    onImageClickListener.onClick(getPosition());
                 }
             });
         }
+        if (onImageLongClickListener != null) {
+            photoView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    onImageLongClickListener.onClick(getPosition());
+                    return true;
+                }
+            });
+        }
+
         viewPager = (HackyViewPager) getActivity().findViewById(R.id.viewPager);
 
         if (savedInstanceState != null) {
@@ -52,6 +70,10 @@ public class ImageFragment extends Fragment {
         loadImageToView();
 
         return rootView;
+    }
+
+    private int getPosition() {
+        return getArguments().getInt(Constants.POSITION);
     }
 
     private void loadImageToView() {
